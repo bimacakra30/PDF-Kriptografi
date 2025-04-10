@@ -3,3 +3,7 @@ PyPDF2
 pdf2image
 Pillow
 tk
+PyQt5>=5.15.0
+pdf2image>=1.16.3
+pycryptodome>=3.18.0
+Pillow>=10.0.0
