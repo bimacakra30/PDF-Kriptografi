@@ -27,6 +27,15 @@ def decrypt_aes(data, key):
     cipher = AES.new(key, AES.MODE_CBC, raw[:16])
     return unpad(cipher.decrypt(raw[16:]))
 
+def vigenere_cipher(text, key):
+    key = key * (len(text) // len(key) + 1)
+    return ''.join(chr((ord(c) + ord(k)) % 256) for c, k in zip(text, key))
+
+def vigenere_decipher(text, key):
+    key = key * (len(text) // len(key) + 1)
+    return ''.join(chr((ord(c) - ord(k)) % 256) for c, k in zip(text, key))
+
+
 class PDFEncryptor(QWidget):
     def __init__(self):
         super().__init__()
@@ -184,7 +193,10 @@ class PDFEncryptor(QWidget):
             return QMessageBox.critical(self, "Error", "File dan Key wajib diisi")
         try:
             with open(selected_file_path, "rb") as f:
-                encrypted = caesar_cipher(encrypt_aes(f.read(), self.key_input.text()), 3)
+                aes_encrypted = encrypt_aes(f.read(), self.key_input.text())
+                caesar_key = caesar_cipher(self.key_input.text(), 3)
+                vigenere_encrypted = vigenere_cipher(aes_encrypted, caesar_key)
+                encrypted = vigenere_encrypted
             self.encrypted_content = encrypted
             self.clear_previews()
             self.preview_file(selected_file_path, to_right=False)
@@ -198,7 +210,10 @@ class PDFEncryptor(QWidget):
             return QMessageBox.critical(self, "Error", "File dan Key wajib diisi")
         try:
             with open(selected_file_path, "r", encoding="utf-8") as f:
-                decrypted_data = decrypt_aes(caesar_decipher(f.read(), 3), self.key_input.text())
+                vigenere_encrypted = f.read()
+                caesar_key = caesar_cipher(self.key_input.text(), 3)
+                aes_base64 = vigenere_decipher(vigenere_encrypted, caesar_key)
+                decrypted_data = decrypt_aes(aes_base64, self.key_input.text())
             self.decrypted_content = decrypted_data
             self.clear_previews()
             self.preview_file(selected_file_path, to_right=False)
